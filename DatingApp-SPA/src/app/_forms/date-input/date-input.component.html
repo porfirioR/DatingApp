@@ -5,5 +5,9 @@
         class='form-control'
         [formControl]='ngControl.control'
         placeholder="{{label}}"
+        bsDatepicker
+        [bsConfig]='bsCofig'
+        [maxDate]='maxDate'
     >
+    <div *ngIf="ngControl.control.errors?.required" class="invalid-feddback">{{label}} is required</div>
 </div>

@@ -29,6 +29,7 @@ import { MemberEditResolver } from './_resolvers/member-edit.resolver';
 import { PreventUnsavedChanges } from './_guards/prevent-unsaved-changes.guad';
 import { PhotoEditorComponent } from './members/photo-editor/photo-editor.component';
 import { DateInputComponent } from './_forms/date-input/date-input.component';
+import { TextInputComponent } from './_forms/text-input/text-input.component';
 
 export function tokenGetter() {
    return  localStorage.getItem('token');
@@ -56,6 +57,7 @@ export class CustomHammerConfig extends HammerGestureConfig {
       MemberEditComponent,
       PhotoEditorComponent,
       DateInputComponent,
+      TextInputComponent,
    ],
    imports: [
       BrowserModule,

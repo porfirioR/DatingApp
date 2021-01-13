@@ -2,7 +2,6 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { AuthService } from '../_services/auth.service';
 import { AlertifyService } from '../_services/alertify.service';
 import { FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { BsDatepickerConfig } from 'ngx-bootstrap';
 import { User } from '../_models/user';
 import { Router } from '@angular/router';
 
@@ -15,14 +14,14 @@ export class RegisterComponent implements OnInit {
   @Output() cancelRegister = new EventEmitter();
   user: User;
   registerForm: FormGroup;
-  bsConfig: Partial<BsDatepickerConfig>;
+  maxDate: Date;
+
   constructor(private authService: AuthService, private alertify: AlertifyService, private fb: FormBuilder, private router: Router) { }
 
   ngOnInit() {
-    this.bsConfig = {
-      containerClass: 'theme-red'
-    };
     this.createRegisterForm();
+    this.maxDate = new Date();
+    this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
   }
 
   createRegisterForm() {

@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -18,30 +19,46 @@ namespace DatingApp.API.Controllers {
         private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
 
-        public AuthController (IAuthRepository repo, IConfiguration config, IMapper mapper) {
+        public AuthController (DataContext context, IAuthRepository repo, IConfiguration config, IMapper mapper) {
             _config = config;
             _repo = repo;
             _mapper = mapper;
+            _context = context;
         }
 
         [HttpPost ("register")]
-        public async Task<IActionResult> Register (UserForRegisterDto userForRegisterDto) {
+        public async Task<ActionResult<UserDto>> Register (RegisterDto registerDto) {
+            if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+
             //validate request
-            userForRegisterDto.Username = userForRegisterDto.Username.ToLower ();
-            if (await _repo.UserExists (userForRegisterDto.Username))
+            registerDto.Username = registerDto.Username.ToLower ();
+            if (await _repo.UserExists (registerDto.Username))
                 return BadRequest ("User name already exist");
 
-            var userToCreate = _mapper.Map<User>(userForRegisterDto);
+            var user = _mapper.Map<User>(registerDto);
+            using var hmac = new HMACSHA512();
+            user.Username = registerDto.Username.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+            user.PasswordSalt = hmac.Key;
 
-            var createdUser = await _repo.Registrer (userToCreate, userForRegisterDto.password);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return new UserDto { 
+                Username = user.Username,
+                Token = _tokenService.CreateToken(user),
+                KnownAs = user.KnownAs
+            };
+        }
 
-            var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
-            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.Id}, userToReturn);
+        private Task<bool> UserExists(string username)
+        {
+            throw new NotImplementedException();
         }
 
         [HttpPost ("login")]
-        public async Task<IActionResult> Login (UserForLoginDto userForLoginDto) {
+        public async Task<ActionResult<UserDto>> Login (UserForLoginDto userForLoginDto) {
             var userFromRepo = await _repo.Login (userForLoginDto.Username.ToLower (), userForLoginDto.Password);
 
             if (userFromRepo == null)
@@ -66,10 +83,12 @@ namespace DatingApp.API.Controllers {
             var tokenHandler = new JwtSecurityTokenHandler ();
             var token = tokenHandler.CreateToken (tokenDescriptor);
             var user = _mapper.Map<UserForListDto>(userFromRepo);
-            return Ok (new {
-                token = tokenHandler.WriteToken (token),
-                user
-            });
+            return new UserDto {
+                Username = user.Username,
+                Token = tokenHandler.WriteToken(token),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                KnownAs = user.KnownAs
+            };
         }
     }
 }
