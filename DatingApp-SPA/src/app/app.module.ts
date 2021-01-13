@@ -1,12 +1,12 @@
 import { BrowserModule, HammerGestureConfig, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, Injectable } from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { BsDropdownModule, TabsModule, BsDatepickerModule } from 'ngx-bootstrap';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { JwtModule } from '@auth0/angular-jwt';
-import { NgxGalleryModule } from 'ngx-gallery';
+import { NgxGalleryModule } from '@kolkov/ngx-gallery';
 import { FileUploadModule } from 'ng2-file-upload';
 import { TimeagoModule } from 'ngx-timeago';
 
@@ -28,11 +28,13 @@ import { MemberEditComponent } from './members/member-edit/member-edit.component
 import { MemberEditResolver } from './_resolvers/member-edit.resolver';
 import { PreventUnsavedChanges } from './_guards/prevent-unsaved-changes.guad';
 import { PhotoEditorComponent } from './members/photo-editor/photo-editor.component';
+import { DateInputComponent } from './_forms/date-input/date-input.component';
 
 export function tokenGetter() {
    return  localStorage.getItem('token');
 }
 
+@Injectable()
 export class CustomHammerConfig extends HammerGestureConfig {
    overrides = {
       pinch: {eneable: false},
@@ -53,6 +55,7 @@ export class CustomHammerConfig extends HammerGestureConfig {
       MemberDetailComponent,
       MemberEditComponent,
       PhotoEditorComponent,
+      DateInputComponent,
    ],
    imports: [
       BrowserModule,
@@ -65,7 +68,7 @@ export class CustomHammerConfig extends HammerGestureConfig {
       BsDropdownModule.forRoot(),
       BsDatepickerModule.forRoot(),
       TabsModule.forRoot(),
-      RouterModule.forRoot(appRoutes),
+      RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
       NgxGalleryModule,
       FileUploadModule,
       JwtModule.forRoot({

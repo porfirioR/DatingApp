@@ -26,6 +26,7 @@ export class RegisterComponent implements OnInit {
   }
 
   createRegisterForm() {
+    // tslint:disable-next-line: deprecation
     this.registerForm = this.fb.group({
       gender: ['male'],
       username: ['', Validators.required],
